@@ -23,6 +23,13 @@ export const updatePage = async (docId, pageNum, status, rotation) => {
     return res.data;
 };
 
+export const updateDocMetadata = async (docId, userFilename) => {
+    const res = await axios.put(`${API_URL}/api/docs/${docId}`, null, {
+        params: { user_filename: userFilename }
+    });
+    return res.data;
+};
+
 export const exportDoc = async (docId) => {
     const res = await axios.post(`${API_URL}/api/docs/${docId}/export`);
     return res.data;

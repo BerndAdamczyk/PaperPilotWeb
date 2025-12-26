@@ -23,6 +23,7 @@ class DocumentStatus(str, Enum):
 class DocumentState(BaseModel):
     id: str                 # UUID
     original_filename: str
+    user_filename: Optional[str] = None # Editable filename (without extension)
     status: DocumentStatus
     pages: List[Page] = []
     created_at: float

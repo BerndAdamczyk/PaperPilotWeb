@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { getDoc, updatePage, exportDoc } from '../services/api';
+import { getDoc, updatePage, exportDoc, updateDocMetadata } from '../services/api';
 import PageCard from './PageCard';
-import { Save, ArrowLeft, Loader2 } from 'lucide-react';
+import { Save, ArrowLeft, Loader2, Edit2 } from 'lucide-react';
 
 const GridEditor = ({ docId, onBack }) => {
     const [doc, setDoc] = useState(null);
     const [loading, setLoading] = useState(true);
     const [exporting, setExporting] = useState(false);
+    const [filename, setFilename] = useState("");
 
     const fetchDoc = async () => {
         try {
             const data = await getDoc(docId);
             setDoc(data);
+            setFilename(data.user_filename || data.original_filename.replace(/\.[^/.]+$/, ""));
         } catch (err) {
             console.error(err);
         } finally {
@@ -21,12 +23,9 @@ const GridEditor = ({ docId, onBack }) => {
 
     useEffect(() => {
         fetchDoc();
-        // Poll for updates if processing? 
-        // For now just load once.
     }, [docId]);
 
     const handleUpdatePage = async (pageNum, status, rotation) => {
-        // Optimistic update
         setDoc(prev => {
             const newPages = [...prev.pages];
             const p = { ...newPages[pageNum] };
@@ -40,7 +39,15 @@ const GridEditor = ({ docId, onBack }) => {
             await updatePage(docId, pageNum, status, rotation);
         } catch (err) {
             console.error("Failed to update page", err);
-            fetchDoc(); // Revert on error
+            fetchDoc(); 
+        }
+    };
+
+    const handleRename = async () => {
+        try {
+            await updateDocMetadata(docId, filename);
+        } catch (err) {
+            console.error("Failed to rename", err);
         }
     };
 
@@ -48,8 +55,10 @@ const GridEditor = ({ docId, onBack }) => {
         if (!confirm("Confirm export? This will process the file and remove it from the list.")) return;
         setExporting(true);
         try {
+            // Ensure filename is saved before export
+            await updateDocMetadata(docId, filename);
             await exportDoc(docId);
-            onBack(); // Go back to list on success
+            onBack(); 
         } catch (err) {
             alert("Export failed: " + err.message);
             setExporting(false);
@@ -63,13 +72,23 @@ const GridEditor = ({ docId, onBack }) => {
         <div className="flex flex-col h-full">
             {/* Toolbar */}
             <div className="bg-white border-b p-4 flex justify-between items-center shadow-sm sticky top-0 z-10">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-1">
                     <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full">
                         <ArrowLeft />
                     </button>
-                    <div>
-                        <h2 className="text-xl font-bold truncate max-w-md">{doc.original_filename}</h2>
-                        <span className="text-sm text-gray-500">{doc.pages.length} Pages</span>
+                    <div className="flex flex-col flex-1 max-w-xl">
+                        <div className="flex items-center gap-2 border-b border-transparent hover:border-gray-300 transition-colors">
+                            <input 
+                                type="text" 
+                                value={filename}
+                                onChange={(e) => setFilename(e.target.value)}
+                                onBlur={handleRename}
+                                className="text-xl font-bold text-gray-800 outline-none bg-transparent w-full"
+                                placeholder="Document Name"
+                            />
+                            <Edit2 size={16} className="text-gray-400" />
+                        </div>
+                        <span className="text-sm text-gray-500 mt-1">{doc.pages.length} Pages</span>
                     </div>
                 </div>
                 <div className="flex gap-2">

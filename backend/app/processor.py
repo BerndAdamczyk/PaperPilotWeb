@@ -73,6 +73,7 @@ class DocumentProcessor:
         doc = DocumentState(
             id=doc_id,
             original_filename=file_path.name,
+            user_filename=file_path.stem, # Default to stem
             status=DocumentStatus.PROCESSING,
             created_at=time.time()
         )
@@ -198,9 +199,6 @@ class DocumentProcessor:
                 if len(current_writer.pages) > 0:
                     current_writer = PdfWriter()
                     writers.append(current_writer)
-                # We do NOT include the split page in the output (usually)
-                # But if the user marked it as 'valid' manually, it would be status VALID.
-                # If status is SPLIT, it acts as a separator and is consumed.
                 continue
 
             # It's VALID
@@ -211,19 +209,28 @@ class DocumentProcessor:
             current_writer.add_page(p)
 
         # Save files
-        base_name = Path(doc.original_filename).stem
-        timestamp = int(time.time())
+        # Use user_filename if available, else fallback to stem of original
+        base_name = doc.user_filename if doc.user_filename else Path(doc.original_filename).stem
         
-        for i, writer in enumerate(writers):
-            if len(writer.pages) == 0:
-                continue
-            
-            # Naming convention: OriginalName_Part1.pdf, etc.
-            out_name = f"{base_name}_{timestamp}_part{i+1}.pdf" if len(writers) > 1 else f"{base_name}_{timestamp}.pdf"
+        # Filter empty writers (could happen if multiple splits in a row)
+        valid_writers = [w for w in writers if len(w.pages) > 0]
+        
+        if len(valid_writers) == 1:
+            # Single file
+            out_name = f"{base_name}.pdf"
             out_path = OUTPUT_DIR / out_name
-            
             with open(out_path, "wb") as f:
-                writer.write(f)
+                valid_writers[0].write(f)
+        else:
+            # Multiple files: base_00.pdf, base_01.pdf ...
+            for i, writer in enumerate(valid_writers):
+                # Format: 00, 01, 02 ...
+                suffix = f"{i:02d}"
+                out_name = f"{base_name}_{suffix}.pdf"
+                out_path = OUTPUT_DIR / out_name
+                
+                with open(out_path, "wb") as f:
+                    writer.write(f)
         
         # Clean up
         self.delete_doc(doc_id)

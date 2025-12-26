@@ -54,6 +54,18 @@ def get_doc(doc_id: str):
         raise HTTPException(status_code=404, detail="Document not found")
     return doc
 
+@app.put("/api/docs/{doc_id}")
+def update_doc_metadata(doc_id: str, user_filename: str = None):
+    doc = processor.get_doc(doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    if user_filename is not None:
+        doc.user_filename = user_filename
+    
+    processor.update_doc(doc)
+    return doc
+
 @app.post("/api/docs/{doc_id}/pages/{page_num}/update")
 def update_page(doc_id: str, page_num: int, status: PageStatus = None, rotation: int = None):
     doc = processor.get_doc(doc_id)
