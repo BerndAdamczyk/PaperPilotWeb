@@ -92,6 +92,15 @@ def export_doc(doc_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.delete("/api/docs/{doc_id}")
+def delete_doc(doc_id: str):
+    doc = processor.get_doc(doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    processor.delete_doc(doc_id)
+    return {"message": "Document deleted"}
+
 @app.get("/api/tools/split-sheet")
 def get_split_sheet():
     path = processor.generate_split_sheet()

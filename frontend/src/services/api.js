@@ -37,5 +37,10 @@ export const exportDoc = async (docId) => {
   return res.data;
 };
 
+export const deleteDoc = async (docId) => {
+  const res = await axios.delete(`${API_URL}/api/docs/${docId}`);
+  return res.data;
+};
+
 export const getSplitSheetUrl = () => `${API_URL}/api/tools/split-sheet`;
 

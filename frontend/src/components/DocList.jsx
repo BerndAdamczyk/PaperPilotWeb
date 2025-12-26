@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { getDocs, getSplitSheetUrl } from '../services/api';
-import { FileText, Clock, Printer } from 'lucide-react';
+import { getDocs, getSplitSheetUrl, deleteDoc } from '../services/api';
+import { FileText, Clock, Printer, Trash2 } from 'lucide-react';
 
 const DocList = ({ onSelect }) => {
     const [docs, setDocs] = useState([]);
 
+    const load = async () => {
+        try {
+            const data = await getDocs();
+            setDocs(data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     useEffect(() => {
-        const load = async () => {
-            try {
-                const data = await getDocs();
-                setDocs(data);
-            } catch (err) {
-                console.error(err);
-            }
-        };
         load();
         const interval = setInterval(load, 5000); // Poll every 5s for new scans
         return () => clearInterval(interval);
@@ -21,6 +22,19 @@ const DocList = ({ onSelect }) => {
 
     const handlePrintSplitSheet = () => {
         window.open(getSplitSheetUrl(), '_blank');
+    };
+
+    const handleDelete = async (e, docId) => {
+        e.stopPropagation(); // Prevent opening the doc
+        if (!confirm("Are you sure you want to delete this document?")) return;
+        
+        try {
+            await deleteDoc(docId);
+            load(); // Reload list
+        } catch (err) {
+            console.error("Failed to delete doc", err);
+            alert("Failed to delete document");
+        }
     };
 
     return (
@@ -77,6 +91,14 @@ const DocList = ({ onSelect }) => {
                                         )}
                                     </div>
                                 </div>
+                                
+                                <button
+                                    onClick={(e) => handleDelete(e, doc.id)}
+                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors self-start sm:self-center"
+                                    title="Delete Document"
+                                >
+                                    <Trash2 size={20} />
+                                </button>
                             </div>
                         </div>
                     ))}
@@ -84,6 +106,7 @@ const DocList = ({ onSelect }) => {
             )}
         </div>
     );
+};
 };
 
 export default DocList;
