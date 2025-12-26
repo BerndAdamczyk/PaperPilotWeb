@@ -108,7 +108,7 @@ class DocumentProcessor:
 
         # Convert PDF to images
         # standard dpi=100 is usually enough for preview and QR detection
-        images = convert_from_path(str(pdf_path), dpi=150)
+        images = convert_from_path(str(pdf_path), dpi=300)
         
         processed_pages = []
         
