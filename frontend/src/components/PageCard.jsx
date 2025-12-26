@@ -6,7 +6,7 @@ import { twMerge } from 'tailwind-merge';
 const PageCard = ({ page, onUpdate }) => {
     // page: { page_number, image_path, status, rotation }
     
-    const imageUrl = `http://localhost:8000/static/${page.image_path}`;
+    const imageUrl = `/static/${page.image_path}`;
     
     const statusColors = {
         'valid': 'border-green-500 bg-green-50',
