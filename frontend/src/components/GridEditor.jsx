@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getDoc, updatePage, exportDoc, updateDocMetadata } from '../services/api';
+import { getDoc, updatePage, exportDoc, updateDocMetadata, getEventSourceUrl } from '../services/api';
 import PageCard from './PageCard';
 import { Save, ArrowLeft, Loader2, Edit2 } from 'lucide-react';
 
@@ -23,7 +23,34 @@ const GridEditor = ({ docId, onBack }) => {
 
     useEffect(() => {
         fetchDoc();
-    }, [docId]);
+        
+        // Connect to SSE for real-time updates
+        const evtSource = new EventSource(getEventSourceUrl());
+        
+        evtSource.onmessage = (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'doc_update' && msg.data.id === docId && !exporting) {
+                     setDoc(prev => {
+                        // Merge or replace. 
+                        // Note: msg.data is the full DocumentState
+                        return msg.data;
+                     });
+                }
+            } catch (e) {
+                console.error("SSE Parse Error", e);
+            }
+        };
+
+        evtSource.onerror = (err) => {
+            console.error("SSE Error", err);
+            // EventSource automatically retries
+        };
+
+        return () => {
+            evtSource.close();
+        };
+    }, [docId, exporting]);
 
     const handleUpdatePage = async (pageNum, status, rotation) => {
         setDoc(prev => {

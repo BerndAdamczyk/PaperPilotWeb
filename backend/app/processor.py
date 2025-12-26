@@ -20,6 +20,7 @@ from reportlab.lib.pagesizes import A4
 import qrcode
 from app.config import TEMP_DIR, INPUT_DIR, OUTPUT_DIR, SPLIT_MARKER, OCR_ROTATION_THRESHOLD
 from app.models import DocumentState, DocumentStatus, Page, PageStatus
+from app.events import event_manager
 
 logger = logging.getLogger("processor")
 
@@ -81,6 +82,8 @@ class DocumentProcessor:
         )
         self.active_docs[doc_id] = doc
         self._save_state(doc)
+        # Broadcast creation
+        await event_manager.broadcast("doc_create", doc.model_dump())
 
         try:
             # Copy file to work dir
@@ -96,11 +99,14 @@ class DocumentProcessor:
             
             doc.status = DocumentStatus.READY
             self._save_state(doc)
+            # Broadcast update
+            await event_manager.broadcast("doc_update", doc.model_dump())
             
         except Exception as e:
             logger.error(f"Error processing {file_path}: {e}")
             doc.status = DocumentStatus.ERROR
             self._save_state(doc)
+            await event_manager.broadcast("doc_update", doc.model_dump())
 
     def _analyze_pdf(self, doc: DocumentState, pdf_path: Path, work_dir: Path):
         images_dir = work_dir / "images"
@@ -207,18 +213,20 @@ class DocumentProcessor:
     def get_doc(self, doc_id: str) -> Optional[DocumentState]:
         return self.active_docs.get(doc_id)
     
-    def update_doc(self, doc: DocumentState):
+    async def update_doc(self, doc: DocumentState):
         self.active_docs[doc.id] = doc
         self._save_state(doc)
+        await event_manager.broadcast("doc_update", doc.model_dump())
 
-    def delete_doc(self, doc_id: str):
+    async def delete_doc(self, doc_id: str):
         if doc_id in self.active_docs:
             doc = self.active_docs[doc_id]
             # remove dir
             shutil.rmtree(TEMP_DIR / doc.id, ignore_errors=True)
             del self.active_docs[doc_id]
+            await event_manager.broadcast("doc_delete", doc_id)
 
-    def export_doc(self, doc_id: str):
+    async def export_doc(self, doc_id: str):
         doc = self.get_doc(doc_id)
         if not doc:
             raise ValueError("Document not found")
@@ -226,6 +234,13 @@ class DocumentProcessor:
         work_dir = TEMP_DIR / doc.id
         original_pdf_path = work_dir / "original.pdf"
         
+        # Run blocking PDF processing in a thread
+        await asyncio.to_thread(self._perform_export, doc, original_pdf_path)
+        
+        # Clean up
+        await self.delete_doc(doc_id)
+
+    def _perform_export(self, doc, original_pdf_path):
         reader = PdfReader(original_pdf_path)
         writers = []
         current_writer = PdfWriter()
@@ -272,9 +287,6 @@ class DocumentProcessor:
                 
                 with open(out_path, "wb") as f:
                     writer.write(f)
-        
-        # Clean up
-        self.delete_doc(doc_id)
 
     def generate_split_sheet(self) -> str:
         """Generates a PDF with the split marker QR code."""

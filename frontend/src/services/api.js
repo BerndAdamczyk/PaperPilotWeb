@@ -42,5 +42,7 @@ export const deleteDoc = async (docId) => {
   return res.data;
 };
 
+export const getEventSourceUrl = () => `${API_URL}/api/events`;
+
 export const getSplitSheetUrl = () => `${API_URL}/api/tools/split-sheet`;
 

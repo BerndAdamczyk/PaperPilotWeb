@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getDocs, getSplitSheetUrl, deleteDoc } from '../services/api';
+import { getDocs, getSplitSheetUrl, deleteDoc, getEventSourceUrl } from '../services/api';
 import { FileText, Clock, Printer, Trash2 } from 'lucide-react';
 
 const DocList = ({ onSelect }) => {
@@ -16,8 +16,33 @@ const DocList = ({ onSelect }) => {
 
     useEffect(() => {
         load();
-        const interval = setInterval(load, 5000); // Poll every 5s for new scans
-        return () => clearInterval(interval);
+        
+        const evtSource = new EventSource(getEventSourceUrl());
+        
+        evtSource.onmessage = (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+                
+                if (msg.type === 'doc_create') {
+                     setDocs(prev => {
+                        const newDoc = msg.data;
+                        // Add to top if new
+                        if (!prev.find(d => d.id === newDoc.id)) {
+                            return [newDoc, ...prev];
+                        }
+                        return prev;
+                     });
+                } else if (msg.type === 'doc_update') {
+                     setDocs(prev => prev.map(d => d.id === msg.data.id ? msg.data : d));
+                } else if (msg.type === 'doc_delete') {
+                     setDocs(prev => prev.filter(d => d.id !== msg.data));
+                }
+            } catch (e) {
+                console.error("SSE Parse Error", e);
+            }
+        };
+
+        return () => evtSource.close();
     }, []);
 
     const handlePrintSplitSheet = () => {
