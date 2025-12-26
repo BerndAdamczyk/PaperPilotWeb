@@ -4,6 +4,7 @@ import uuid
 import json
 import logging
 import time
+import asyncio
 import cv2
 import numpy as np
 from pathlib import Path
@@ -38,8 +39,32 @@ class DocumentProcessor:
                     except Exception as e:
                         logger.error(f"Failed to load state for {item.name}: {e}")
 
+    async def _wait_for_file_ready(self, file_path: Path, timeout: int = 10):
+        """Waits until the file size is stable (fully written)."""
+        start_time = time.time()
+        last_size = -1
+        
+        while time.time() - start_time < timeout:
+            if not file_path.exists():
+                return # File disappeared?
+            
+            try:
+                current_size = file_path.stat().st_size
+                if current_size == last_size and current_size > 0:
+                    return # Stable
+                last_size = current_size
+            except Exception:
+                pass # access error, maybe locked
+            
+            await asyncio.sleep(1.0)
+        
+        logger.warning(f"Timeout waiting for file {file_path} to stabilize. Proceeding anyway.")
+
     async def process_new_file(self, file_path: Path):
         """Ingests a new PDF file."""
+        # Wait for file to be fully written
+        await self._wait_for_file_ready(file_path)
+
         doc_id = str(uuid.uuid4())
         work_dir = TEMP_DIR / doc_id
         work_dir.mkdir(parents=True, exist_ok=True)
