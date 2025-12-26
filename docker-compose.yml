@@ -11,6 +11,7 @@ services:
       - INPUT_DIR=/data/input
       - OUTPUT_DIR=/data/output
       - TEMP_DIR=/data/temp
+      - OCR_ROTATION_THRESHOLD=${OCR_ROTATION_THRESHOLD:-0.0}
     restart: always
 
   frontend:
