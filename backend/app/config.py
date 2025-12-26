@@ -17,3 +17,4 @@ TEMP_DIR.mkdir(parents=True, exist_ok=True)
 # Application Settings
 SPLIT_MARKER = "SPLIT_HERE"
 ALLOWED_EXTENSIONS = {".pdf"}
+OCR_ROTATION_THRESHOLD = float(os.getenv("OCR_ROTATION_THRESHOLD", "0.0"))

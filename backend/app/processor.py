@@ -18,7 +18,7 @@ from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 import qrcode
-from app.config import TEMP_DIR, INPUT_DIR, OUTPUT_DIR, SPLIT_MARKER
+from app.config import TEMP_DIR, INPUT_DIR, OUTPUT_DIR, SPLIT_MARKER, OCR_ROTATION_THRESHOLD
 from app.models import DocumentState, DocumentStatus, Page, PageStatus
 
 logger = logging.getLogger("processor")
@@ -157,7 +157,7 @@ class DocumentProcessor:
                 
                 # Only apply rotation if confidence is high enough
                 # Low confidence often leads to false positives (e.g. 180 flip on sparse text)
-                if conf < 2.0:
+                if conf < OCR_ROTATION_THRESHOLD:
                     return 0
                     
                 return rotation
