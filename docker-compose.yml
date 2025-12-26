@@ -2,7 +2,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "$${BACKEND_PORT:-8000}:8000"
+      - "${BACKEND_PORT:-8000}:8000"
     volumes:
       - ${INPUT_DIR_HOST}:/data/input
       - ${OUTPUT_DIR_HOST}:/data/output
