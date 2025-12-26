@@ -8,6 +8,9 @@ RUN apt-get update && apt-get install -y \
     poppler-utils \
     libzbar0 \
     libgl1 \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    tesseract-ocr-deu \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

@@ -11,3 +11,4 @@ qrcode[pil]
 reportlab
 python-dotenv
 aiofiles
+pytesseract

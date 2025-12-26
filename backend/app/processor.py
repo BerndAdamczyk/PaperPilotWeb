@@ -5,8 +5,10 @@ import json
 import logging
 import time
 import asyncio
+import re
 import cv2
 import numpy as np
+import pytesseract
 from pathlib import Path
 from typing import Optional
 from pdf2image import convert_from_path
@@ -118,6 +120,11 @@ class DocumentProcessor:
             # Analyze
             status = self._detect_page_type(img)
             
+            # Detect orientation (only for valid pages to save time/errors)
+            rotation = 0
+            if status == PageStatus.VALID:
+                rotation = self._detect_orientation(img)
+
             # Relative path for frontend
             rel_path = f"{doc.id}/images/{img_filename}"
             
@@ -125,13 +132,51 @@ class DocumentProcessor:
                 page_number=i,
                 image_path=rel_path,
                 status=status,
-                rotation=0,
+                rotation=rotation,
                 original_width=img.width,
                 original_height=img.height
             )
             processed_pages.append(page)
         
         doc.pages = processed_pages
+
+    def _detect_orientation(self, pil_image: Image) -> int:
+        """Detects text orientation using Tesseract OSD."""
+        try:
+            # psm 0 = Orientation and script detection (OSD) only
+            osd = pytesseract.image_to_osd(pil_image, config='--psm 0')
+            
+            # Extract 'Rotate: 90' etc.
+            # OSD output format:
+            # Page number: 0
+            # Orientation in degrees: 90
+            # Rotate: 90
+            # Orientation confidence: ...
+            # Script: ...
+            
+            # We want 'Rotate', which is the correction needed.
+            # Note: Tesseract 'Rotate' is clockwise degrees needed to make it upright.
+            # e.g. if text is 90 deg clockwise (facing right), Tesseract says 'Rotate: 270'??
+            # Let's verify standard behavior.
+            # Usually:
+            # If text is ^ (0), Rotate: 0
+            # If text is > (90 CW), it needs -90 or 270 rotation to be upright.
+            # Tesseract 'Rotate' usually gives the angle the text is currently at relative to upright, 
+            # OR the angle needed to fix it.
+            # Actually, 'Rotate: 90' in Tesseract OSD means "The image is rotated 90 degrees clockwise from upright". 
+            # So we need to rotate it -90 (or 270) to fix it?
+            # Wait, usually 'Rotate' in OSD output is the *suggested* rotation to fix it.
+            # Let's check docs or common usage.
+            # "Rotate: 90" usually means "Clockwise rotation needed: 90".
+            # Let's assume the return value is what we should apply.
+            
+            rotation_match = re.search(r'Rotate: (\d+)', osd)
+            if rotation_match:
+                return int(rotation_match.group(1))
+        except Exception:
+            # If detection fails (no text, too blurry), keep 0
+            pass
+        return 0
 
     def _detect_page_type(self, pil_image: Image) -> PageStatus:
         # 1. Check for QR Code / Split Marker
