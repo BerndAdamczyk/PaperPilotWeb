@@ -107,6 +107,5 @@ const DocList = ({ onSelect }) => {
         </div>
     );
 };
-};
 
 export default DocList;
