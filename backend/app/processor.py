@@ -92,7 +92,7 @@ class DocumentProcessor:
 
             # Process in background (blocking, so maybe run in executor in real app)
             # For this prototype, we'll do it synchronously or rely on FastAPIs async
-            self._analyze_pdf(doc, temp_pdf_path, work_dir)
+            await asyncio.to_thread(self._analyze_pdf, doc, temp_pdf_path, work_dir)
             
             doc.status = DocumentStatus.READY
             self._save_state(doc)
