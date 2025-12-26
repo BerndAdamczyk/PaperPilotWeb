@@ -24,12 +24,12 @@ const DocList = ({ onSelect }) => {
     };
 
     return (
-        <div className="p-6 max-w-4xl mx-auto">
-            <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold text-gray-800">PaperPilot Inbox</h1>
+        <div className="p-4 md:p-6 max-w-4xl mx-auto">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-800">PaperPilot Inbox</h1>
                 <button 
                     onClick={handlePrintSplitSheet}
-                    className="flex items-center gap-2 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg border border-blue-200 transition-colors"
+                    className="flex items-center gap-2 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg border border-blue-200 transition-colors w-full sm:w-auto justify-center"
                 >
                     <Printer size={20} />
                     Get Split Sheet
@@ -37,39 +37,39 @@ const DocList = ({ onSelect }) => {
             </div>
 
             {docs.length === 0 ? (
-                <div className="text-center py-20 text-gray-400">
+                <div className="text-center py-12 md:py-20 text-gray-400">
                     <div className="flex justify-center mb-4">
-                        <FileText size={64} strokeWidth={1} />
+                        <FileText size={48} className="md:w-16 md:h-16" strokeWidth={1} />
                     </div>
-                    <p className="text-xl">No documents waiting.</p>
+                    <p className="text-lg md:text-xl">No documents waiting.</p>
                     <p className="text-sm mt-2">Scan a PDF into the input folder to start.</p>
                 </div>
             ) : (
-                <div className="grid gap-4">
+                <div className="grid gap-3 md:gap-4">
                     {docs.map(doc => (
                         <div 
                             key={doc.id}
                             onClick={() => onSelect(doc.id)}
-                            className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer flex justify-between items-center group"
+                            className="bg-white p-3 md:p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 group"
                         >
-                            <div className="flex items-center gap-4">
-                                <div className={`p-3 rounded-lg ${
+                            <div className="flex items-start sm:items-center gap-3 md:gap-4 w-full">
+                                <div className={`p-2 md:p-3 rounded-lg shrink-0 ${
                                     doc.status === 'ready' ? 'bg-blue-50 text-blue-600' : 
                                     doc.status === 'processing' ? 'bg-yellow-50 text-yellow-600' : 
                                     'bg-red-50 text-red-600'
                                 }`}>
-                                    <FileText size={24} />
+                                    <FileText size={20} className="md:w-6 md:h-6" />
                                 </div>
-                                <div>
-                                    <h3 className="font-semibold text-lg text-gray-800 group-hover:text-blue-600 transition-colors">
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="font-semibold text-base md:text-lg text-gray-800 group-hover:text-blue-600 transition-colors truncate">
                                         {doc.original_filename}
                                     </h3>
-                                    <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs md:text-sm text-gray-500 mt-1">
                                         <span className="flex items-center gap-1">
-                                            <Clock size={14} />
+                                            <Clock size={12} className="md:w-3.5 md:h-3.5" />
                                             {new Date(doc.created_at * 1000).toLocaleString()}
                                         </span>
-                                        <span className="capitalize px-2 py-0.5 rounded-full text-xs bg-gray-100">
+                                        <span className="capitalize px-1.5 py-0.5 rounded-full bg-gray-100">
                                             {doc.status}
                                         </span>
                                         {doc.pages.length > 0 && (

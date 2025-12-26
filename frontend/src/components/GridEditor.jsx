@@ -71,41 +71,41 @@ const GridEditor = ({ docId, onBack }) => {
     return (
         <div className="flex flex-col h-full">
             {/* Toolbar */}
-            <div className="bg-white border-b p-4 flex justify-between items-center shadow-sm sticky top-0 z-10">
-                <div className="flex items-center gap-4 flex-1">
-                    <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full">
+            <div className="bg-white border-b p-2 md:p-4 shadow-sm sticky top-0 z-10 flex flex-col md:flex-row gap-3 md:gap-4 md:items-center justify-between">
+                <div className="flex items-center gap-2 md:gap-4 flex-1 w-full md:w-auto">
+                    <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full shrink-0">
                         <ArrowLeft />
                     </button>
-                    <div className="flex flex-col flex-1 max-w-xl">
-                        <div className="flex items-center gap-2 border-b border-transparent hover:border-gray-300 transition-colors">
+                    <div className="flex flex-col flex-1 min-w-0">
+                        <div className="flex items-center gap-2 border-b border-transparent hover:border-gray-300 transition-colors focus-within:border-blue-500">
                             <input 
                                 type="text" 
                                 value={filename}
                                 onChange={(e) => setFilename(e.target.value)}
                                 onBlur={handleRename}
-                                className="text-xl font-bold text-gray-800 outline-none bg-transparent w-full"
+                                className="text-lg md:text-xl font-bold text-gray-800 outline-none bg-transparent w-full py-1"
                                 placeholder="Document Name"
                             />
-                            <Edit2 size={16} className="text-gray-400" />
+                            <Edit2 size={16} className="text-gray-400 shrink-0" />
                         </div>
-                        <span className="text-sm text-gray-500 mt-1">{doc.pages.length} Pages</span>
+                        <span className="text-xs md:text-sm text-gray-500 mt-0.5">{doc.pages.length} Pages</span>
                     </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full md:w-auto justify-end">
                     <button 
                         onClick={handleExport}
                         disabled={exporting}
-                        className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                        className="flex-1 md:flex-none justify-center items-center gap-2 bg-blue-600 text-white px-4 md:px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm md:text-base font-medium shadow-sm active:scale-95 transition-all"
                     >
-                        {exporting ? <Loader2 className="animate-spin" /> : <Save />}
+                        {exporting ? <Loader2 className="animate-spin w-4 h-4 md:w-5 md:h-5" /> : <Save className="w-4 h-4 md:w-5 md:h-5" />}
                         Export PDF
                     </button>
                 </div>
             </div>
 
             {/* Grid */}
-            <div className="flex-1 overflow-auto p-4 bg-gray-100">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div className="flex-1 overflow-auto p-2 md:p-4 bg-gray-100">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4">
                     {doc.pages.map((page) => (
                         <PageCard 
                             key={page.page_number} 
