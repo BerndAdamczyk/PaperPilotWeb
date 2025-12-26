@@ -145,7 +145,10 @@ class DocumentProcessor:
         try:
             # Use German and English for better accuracy with Umlauts
             # psm 0 = Orientation and script detection (OSD) only
-            osd = pytesseract.image_to_osd(pil_image, lang='deu+eng', config='--psm 0')
+            # Note: We removed lang='deu+eng' because the standard apt packages for deu
+            # often lack the legacy engine data required for OSD (--psm 0), causing it to fail.
+            # The default 'osd' model is usually sufficient for Latin scripts.
+            osd = pytesseract.image_to_osd(pil_image, config='--psm 0')
             
             # Parse output
             rotation_match = re.search(r'Rotate: (\d+)', osd)
