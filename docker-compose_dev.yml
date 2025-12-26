@@ -4,9 +4,9 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ${INPUT_DIR_HOST}:/data/input
-      - ${OUTPUT_DIR_HOST}:/data/output
-      - ${TEMP_DIR_HOST}:/data/temp
+      - ./data:/data
+      # Mount source for hot reload during dev (optional)
+      # - ./backend:/app 
     environment:
       - INPUT_DIR=/data/input
       - OUTPUT_DIR=/data/output
@@ -14,10 +14,12 @@ services:
     restart: always
 
   frontend:
-    build: ./frontend
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
     ports:
       - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host"
     depends_on:
       - backend
-    restart: always
-
