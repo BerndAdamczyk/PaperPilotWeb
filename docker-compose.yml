@@ -16,7 +16,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "${BACKEND_PORT:-8000}:5173"
+      - "${FRONTEND_PORT:-5173}:5173"
     depends_on:
       - backend
     restart: always
