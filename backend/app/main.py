@@ -9,6 +9,7 @@ from app.models import DocumentState, PageStatus
 import uvicorn
 import asyncio
 import os
+import traceback
 
 app = FastAPI(title="PaperPilot Web")
 
@@ -42,10 +43,14 @@ def read_root():
 
 @app.get("/api/docs")
 def list_docs():
-    # Return list of docs sorted by creation time
-    docs = list(processor.active_docs.values())
-    docs.sort(key=lambda x: x.created_at, reverse=True)
-    return docs
+    try:
+        # Return list of docs sorted by creation time
+        docs = list(processor.active_docs.values())
+        docs.sort(key=lambda x: x.created_at, reverse=True)
+        return docs
+    except Exception:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.get("/api/docs/{doc_id}")
 def get_doc(doc_id: str):

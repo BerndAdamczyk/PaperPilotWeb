@@ -155,14 +155,19 @@ class DocumentProcessor:
                 rotation = int(rotation_match.group(1))
                 conf = float(conf_match.group(1))
                 
+                logger.info(f"OSD: Rotate={rotation}, Conf={conf} (Threshold={OCR_ROTATION_THRESHOLD})")
+
                 # Only apply rotation if confidence is high enough
                 # Low confidence often leads to false positives (e.g. 180 flip on sparse text)
                 if conf < OCR_ROTATION_THRESHOLD:
+                    logger.info("Skipping rotation due to low confidence")
                     return 0
                     
                 return rotation
-        except Exception:
-            # If detection fails (no text, too blurry), keep 0
+            else:
+                logger.warning(f"OSD Parse Failed. Output: {osd}")
+        except Exception as e:
+            logger.warning(f"Orientation detection failed: {e}")
             pass
         return 0
 

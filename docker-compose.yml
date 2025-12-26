@@ -20,6 +20,7 @@ services:
       - "${FRONTEND_PORT:-5173}:5173"
     environment:
       - VITE_ALLOWED_HOSTS=${VITE_ALLOWED_HOSTS:-}
+      - VITE_PROXY_TARGET=http://backend:8000
     depends_on:
       - backend
     restart: always
