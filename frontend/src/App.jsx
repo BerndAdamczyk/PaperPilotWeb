@@ -10,7 +10,7 @@ function App() {
       {/* Header */}
       <header className="bg-slate-900 text-white p-4 shadow-md z-20">
         <div className="container mx-auto flex items-center gap-3">
-            <img src="/vite.svg" className="w-8 h-8 filter invert" alt="Logo" />
+            <img src="/icon.png" className="w-8 h-8 rounded-md" alt="Logo" />
             <h1 className="text-xl font-bold tracking-tight">PaperPilot Web</h1>
         </div>
       </header>
