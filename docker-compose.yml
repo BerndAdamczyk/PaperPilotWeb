@@ -17,6 +17,8 @@ services:
     build: ./frontend
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
+    environment:
+      - VITE_ALLOWED_HOSTS=${VITE_ALLOWED_HOSTS:-}
     depends_on:
       - backend
     restart: always

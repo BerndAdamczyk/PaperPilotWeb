@@ -6,7 +6,9 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
-    allowedHosts: 'all'
+    allowedHosts: process.env.VITE_ALLOWED_HOSTS
+      ? process.env.VITE_ALLOWED_HOSTS.split(',')
+      : []
   }
 })
 
